@@ -1,0 +1,18 @@
+[nodes]
+10.100.0.10 kubelet_label=department=livechat,livheat=true,node-role.kubernetes.io/node=true
+10.100.0.7 kubelet_label=department=livechat,livheat=true,node-role.kubernetes.io/node=true
+
+[etcd]
+10.100.1.10
+10.100.0.8
+10.100.0.5
+
+[masters]
+10.100.1.10
+10.100.0.8
+10.100.0.5
+
+[all:vars]
+# common,aws
+provider=common
+apiserver_https_port=6443

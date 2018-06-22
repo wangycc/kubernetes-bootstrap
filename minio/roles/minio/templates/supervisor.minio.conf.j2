@@ -1,0 +1,22 @@
+{% macro minio_cluster() -%}
+{% for host in groups["minio"] %}
+{% for data_dir in minio_server_datadirs %}
+{{ minio_peer_url_scheme  }}://{{ host  }}{{ minio_server_addr  }}{{ data_dir }} {% endfor %}
+{%- endfor -%}
+{% endmacro -%}
+
+#Minio cli options.
+[program:minio]
+command= /data/apps/minio/bin/minio -C /data/apps/minio/conf server --address {{ minio_server_addr }} {{ minio_server_opts }} {{ minio_cluster() }}
+directory=/data/apps/minio
+autostart=true
+autorestart=true
+startsecs=10
+startretries=3
+stdout_logfile={{ minio_log_dir }}/minio.log
+stdout_logfile_maxbytes=100MB
+stdout_logfile_backups=20
+stderr_logfile={{ minio_log_dir }}/minio.log
+stderr_logfile_maxbytes=100MB
+stderr_logfile_backups=2
+priority=1

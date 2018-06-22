@@ -1,0 +1,46 @@
+---
+ansible_service_mgr: "supervisor"
+
+minio_peer_url_scheme: "http"
+
+# Minio and MC download urls
+# minio_server_download_url: https://dl.minio.io/server/minio/release/linux-amd64/minio
+# minio_client_download_url: https://dl.minio.io/client/mc/release/linux-amd64/mc
+minio_server_download_url: http://121.41.89.129:8000/minio
+minio_client_download_url: http://121.41.89.129:8000/mc
+# Runtime user and group for the minio server service
+minio_user: meiqia
+minio_group: meiqia
+
+# systemd manager
+systemd_units_dir: /usr/lib/systemd/system
+
+supervisor_conf_dir: /data/etc/supervisor/conf.d
+
+# Minio binaries path
+minio_bin_dir: /data/apps/minio/bin
+minio_server_bin: "{{ minio_bin_dir }}/minio"
+minio_client_bin: "{{ minio_bin_dir }}/mc"
+
+# minio server ENV variables
+minio_conf_dir: /data/apps/minio/conf
+minio_server_addr: ":9092"
+minio_server_data: /data/apps/minio/data
+minio_server_datadirs:
+  - "{{ minio_server_data }}/export"
+  - "{{ minio_server_data }}/export1"
+  - "{{ minio_server_data }}/export2"
+  - "{{ minio_server_data }}/export3"
+
+
+# log
+minio_log_dir: /data/logs/supervisor/minio
+
+
+# Additional minio server CLI options
+minio_server_opts: ""
+
+# Minio access and secret keys
+minio_access_key: "minio"
+minio_secret_key: "CHx5D+jpNVMs0qxrhIQ38sMfS4eFLjhC4ZXogjCl"
+minio_region: "cn-north-1"

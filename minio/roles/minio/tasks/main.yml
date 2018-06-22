@@ -1,0 +1,28 @@
+---
+
+- name: create minio group
+  group:
+    name: "{{ minio_group }}"
+    state: present
+
+- name: create minio user
+  user:
+    name: "{{ minio_user }}"
+    group: "{{ minio_group }}"
+    shell: /bin/bash
+- name: create minion directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+    owner: "{{ minio_user }}"
+    group: "{{ minio_group }}"
+  with_items:
+    - "{{ minio_bin_dir }}"
+    - "{{ minio_conf_dir }}"
+    - "{{ minio_server_datadirs }}"
+    - "{{ minio_log_dir }}"
+
+- include: server.yml
+
+- include: client.yml

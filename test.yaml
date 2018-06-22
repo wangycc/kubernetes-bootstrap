@@ -1,0 +1,12 @@
+---
+- hosts: localhost
+  tasks:
+    - debug: var=ansible_distribution
+    - debug: var=ansible_distribution_version
+    - debug: var=inventory_dir
+    - debug: var=playbook_dir
+    - debug: var=inventory_file
+    - debug: var=ansible_inventory_sources
+    - debug: var=groups['etcd']
+  
+
