@@ -1,13 +1,13 @@
 ---
 #AWS VPC config
-k8s_cluster: kubernetes-crm
+k8s_cluster: kubernetes-test
 env: Kubernete Pro
 region: cn-north-1
 nat_security_group: "{{ k8s_cluster }}_nat_sg"
 master_security_group: "{{ k8s_cluster }}_master_sg"
 node_security_group: "{{ k8s_cluster }}_node_sg"
-AWS_ACCESS_KEY: AKIAJT6FXDQ4BSZ66WBA 
-AWS_SECRET_ACCESS_KEY: 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 
+AWS_ACCESS_KEY: xxxxxxx 
+AWS_SECRET_ACCESS_KEY: xxxxxxxxxx 
 
 master_image: ami-8b1bc6e6 
 node_image: ami-8b1bc6e6
