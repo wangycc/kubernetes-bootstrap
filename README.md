@@ -15,6 +15,29 @@
 - TLS: True
 - RBAC: True
 
+##### 环境准备
+
+- 安装epel源
+
+```shell
+yum install epel-release -y
+```
+- 安装python-pip
+
+```shell
+yum install python-pip -y
+```
+
+- 安装ansible
+
+```shell
+pip install ansible==2.5.1 -i https://pypi.douban.com/simple
+```
+
+- 环境配置
+
+本环境所有环境配置变量均在inventory/group_vars/all.yaml配置文件中.
+
 **1. 下载依赖包到本地**
 
    部署前deploy-local.sh 下载包及解压,kubernetes及etcd版本可通过inventory/group_vars/all.yaml# downloads修改
