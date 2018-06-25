@@ -23,8 +23,8 @@
 - name: slurp CA certificate from ansible host
   slurp: src={{ cert_dir_tmp  }}/{{ item  }}
   with_items:
-    - kubernetes-key.pem
-    - kubernetes.pem
+    - etcd-key.pem
+    - etcd.pem
     - ca.pem
   register: pki_certs
   run_once: true
