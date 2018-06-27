@@ -1,0 +1,87 @@
+---
+- name: Copy the  kube-system mainifest file to master instance.
+  template:
+    src: "{{ role_path }}/templates/kube-dns/{{ item }}"
+    dest: "/tmp/{{ item }}"
+    owner: root
+    group: root
+    mode: 0755
+    backup: True
+  with_items:
+    - dns-horizontal-autoscaler.yaml  
+    - kubedns-cm.yaml  
+    - kubedns-deployment.yml  
+    - kubedns-sa.yaml  
+    - kubedns-svc.yaml
+  delegate_to: "{{ groups['masters'][0] }}"
+  run_once: yes
+  tags: 
+    - kube-dns
+    - addon
+
+- name: Copy the  heapster mainifest file to master instance.
+  template:
+    src: "{{ role_path }}/templates/heapster/{{ item }}"
+    dest: "/tmp/{{ item }}"
+    owner: root
+    group: root
+    mode: 0755
+    backup: True
+  with_items:
+    - heapster-deployment.yaml  
+    - heapster-rbac.yaml  
+    - heapster-service.yaml  
+    - influxdb-cm.yaml  
+    - influxdb-deployment.yaml  
+    - influxdb-ingress.yaml  
+    - influxdb-service.yaml
+  delegate_to: "{{ groups['masters'][0] }}"
+  run_once: yes
+  tags: 
+    - heapster
+    - addon
+
+- name: Deploy kube-dns deployment set 
+  command: |-
+    {{ kubernetes_bin_dir }}/kubectl --kubeconfig="{{ kubernetes_conf_dir }}/kubectl.kubeconfig" apply -f /tmp/{{ item }}
+  with_items:
+    - dns-horizontal-autoscaler.yaml
+    - kubedns-cm.yaml
+    - kubedns-deployment.yml
+    - kubedns-sa.yaml
+    - kubedns-svc.yaml
+  delegate_to: "{{ groups['masters'][0] }}"
+  run_once: yes
+  tags: 
+    - kube-dns
+    - addon
+
+- name: Deploy heapster deployment set 
+  command: |-
+    {{ kubernetes_bin_dir }}/kubectl --kubeconfig="{{ kubernetes_conf_dir }}/kubectl.kubeconfig" apply -f /tmp/{{ item }}
+  with_items:
+    - heapster-deployment.yaml  
+    - heapster-rbac.yaml  
+    - heapster-service.yaml  
+    - influxdb-cm.yaml  
+    - influxdb-deployment.yaml  
+    - influxdb-ingress.yaml  
+    - influxdb-service.yaml
+  delegate_to: "{{ groups['masters'][0] }}"
+  run_once: yes
+  tags: 
+    - kube-dns
+    - addon
+
+- name: Get pod status information for the kube-system namespace 
+  command: |-
+    {{ kubernetes_bin_dir }}/kubectl --kubeconfig="{{ kubernetes_conf_dir }}/kubectl.kubeconfig" -n kube-system get all
+  delegate_to: "{{ groups['masters'][0] }}"
+  run_once: yes
+  register: all_addon_status
+  tags: 
+    - addon_status
+
+- debug: var=all_addon_status.stdout_lines
+  tags: 
+    - addon_status

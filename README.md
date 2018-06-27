@@ -113,6 +113,18 @@ PING 172.30.104.2 (172.30.104.2): 56 data bytes
 round-trip min/avg/max = 0.546/0.774/1.101 ms
 ```
 
+7 部署kube-dns和heapster
+  kube-dns为kubernetes集群提供服务发现能力。heapster在现有版本采集kubernetes 组件所有的metrics供HPA和其他监控组件使用
+  
+```shell
+# 部署
+bash deploy-kube-system.sh 
+# 查看kube-system namespace中资源状态
+
+bash deploy-kube-system.sh --tags addon_status
+
+```
+
 部署完毕
 
 

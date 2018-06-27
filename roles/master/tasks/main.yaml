@@ -8,6 +8,7 @@
     - "{{ master_log_dir }}"
     - "{{ master_conf_dir }}"
     - "{{ master_bin_dir }}"
+    - "~/.kube"
 
 - include: cert.yaml
 
@@ -15,6 +16,11 @@
   template:
     src: kubectl.kubeconfig
     dest: "{{ kubernetes_conf_dir }}/kubectl.kubeconfig"
+
+- name: write the kubectl.kubeconfig (auth) file for kubectl to ~/.kube/config
+  template:
+    src: kubectl.kubeconfig
+    dest: "~/.kube/config"
 
 - name: Create TLS Bootstrapping Token
   template:

@@ -12,11 +12,9 @@ spec:
         k8s-app: influxdb
         task: monitoring
     spec:
-      nodeSelector:
-        department: kube-system
       containers:
         - name: influxdb
-          image: hub.meiqia.com/google_gcr/google_heapster-influxdb-amd64:v1.1.1
+          image: wangyichen/google_heapster-influxdb-amd64:v1.1.1
           ports:
             - containerPort: 8088
             - containerPort: 8086

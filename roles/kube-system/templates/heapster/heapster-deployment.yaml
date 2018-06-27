@@ -13,11 +13,9 @@ spec:
         k8s-app: heapster
     spec:
       serviceAccountName: heapster
-      nodeSelector:
-        department: kube-system
       containers:
         - name: heapster
-          image: hub.meiqia.com/google_gcr/google_heapster-amd64:v1.3.0-beta.1
+          image: wangyichen/google_heapster-amd64:v1.3.0-beta.1
           imagePullPolicy: IfNotPresent
           command:
             - /heapster

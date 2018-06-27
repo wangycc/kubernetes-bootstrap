@@ -1,0 +1,8 @@
+---
+- name: Deploy kube-system
+  hosts: localhost 
+  become: true
+  roles:
+    - kube-system
+  tags:
+    - kube-system
