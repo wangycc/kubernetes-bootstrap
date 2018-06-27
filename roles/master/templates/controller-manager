@@ -5,7 +5,7 @@
 
 # Add your own!
 {% if provider == "aws" %}
-KUBE_CONTROLLER_MANAGER_ARGS="--address=127.0.0.1 --cluster-cidr={{ cluster_cidr }} --service-cluster-ip-range={{ service_cluster_ip_range }} --cluster-name={{ k8s_cluster }} --cluster-signing-cert-file={{ cert_dir }}/ca.pem --cluster-signing-key-file={{ cert_dir }}/ca-key.pem  --service-account-private-key-file={{ cert_dir }}/ca-key.pem --root-ca-file={{ cert_dir }}/ca.pem --leader-elect=true --cloud-provider=aws"
+KUBE_CONTROLLER_MANAGER_ARGS="--address=127.0.0.1 --cluster-cidr={{ cluster_cidr }} --service-cluster-ip-range={{ service_cluster_ip_range }} --cluster-name={{ k8s_cluster }} --cluster-signing-cert-file={{ cert_dir }}/ca.pem --cluster-signing-key-file={{ cert_dir }}/ca-key.pem  --service-account-private-key-file={{ cert_dir }}/ca-key.pem --root-ca-file={{ cert_dir }}/ca.pem --leader-elect=true --cloud-provider=aws --horizontal-pod-autoscaler-use-rest-clients=false"
 {% else %}
-KUBE_CONTROLLER_MANAGER_ARGS="--address=127.0.0.1 --cluster-cidr={{ cluster_cidr }} --service-cluster-ip-range={{ service_cluster_ip_range }} --cluster-name={{ k8s_cluster }} --cluster-signing-cert-file={{ cert_dir }}/ca.pem --cluster-signing-key-file={{ cert_dir }}/ca-key.pem  --service-account-private-key-file={{ cert_dir }}/ca-key.pem --root-ca-file={{ cert_dir }}/ca.pem --leader-elect=true "
+KUBE_CONTROLLER_MANAGER_ARGS="--address=127.0.0.1 --cluster-cidr={{ cluster_cidr }} --service-cluster-ip-range={{ service_cluster_ip_range }} --cluster-name={{ k8s_cluster }} --cluster-signing-cert-file={{ cert_dir }}/ca.pem --cluster-signing-key-file={{ cert_dir }}/ca-key.pem  --service-account-private-key-file={{ cert_dir }}/ca-key.pem --root-ca-file={{ cert_dir }}/ca.pem --leader-elect=true --horizontal-pod-autoscaler-use-rest-clients=false"
 {% endif %}
