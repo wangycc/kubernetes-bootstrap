@@ -18,6 +18,9 @@ key_pair: devops
 nat_image: "ami-0f944362"
 nat_instance_type: t2.micro
 
+
+CLUSTER_DNS_DOMAIN: "cluster.local."
+
 ## common config
 # common,aws
 provider: common

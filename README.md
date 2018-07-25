@@ -2,18 +2,64 @@
 
 #### 1. Pre installation
 
-##### 系统环境
+##### 系统环境以及组件版本
 
 - Linux内核:4.11
 - Linux发行版: Centos7.3
 - Docker data FS: XFS
 - Docker: 17.3
 - Docker storage driver: overlay2
-- kubernetes: 1.9.1
-- flannel: 0.9.1
-- etcd: 3.1.10
+- kubernetes: 1.10.5
+- flannel: 0.10.0(cni)
+- etcd: 3.1.12
 - TLS: True
 - RBAC: True
+- 插件
+  - Coredns
+  - Dashboard
+  - Heapster(influxdb、grafana)
+  - Metrics-Server
+  - Filebeat
+
+##### 配置规划
+
+kube-apiserver:
+    - 在kubelet节点运行nginx，用来proxy 所有apiserver实现高可用
+    - 关闭非安全端口8080和匿名访问
+    - 在安全端口6443接口https请求
+    - nginx代理端口9443-->6443,作为kubelet连接apiserver的代理点
+    - 严格的认证和授权策略(x509、token、RBAC)
+    - 开启开启 bootstrap token 认证，支持 kubelet TLS bootstrapping
+    - 使用 https 访问 kubelet、etcd，加密通信
+
+kube-controller-manager:
+    - 支持单节点和高可用2(n+1)节点数。
+    - 关闭非安全端口，在安全端口10252接受https请求
+    - 使用kubeconfig访问apiserver的安全端口
+    - 自动 approve kubelet 证书签名请求 (CSR)，证书过期后自动轮转
+    - 各controller 使用自己的 ServiceAccount 访问 apiserver
+
+kube-scheduler:
+    - 支持单节点和高可用2(n+1)节点数
+    - 使用kubeconfig访问apiserver的安全端口
+
+kubelet:
+    - 使用TLS bootstrap 机制自动生成 client 和 server 证书，过期后自动轮转
+    - TLS bootstrap 机制自动生成 client 和 server 证书，过期后自动轮转
+    - 关闭只读端口，在安全端口 10250 接收 https 请求，对请求进行认证和授权，拒绝匿名访问和非授权访问
+    - 使用 kubeconfig 访问 apiserver 的安全端口
+
+kube-proxy:
+    - 使用 kubeconfig 访问 apiserver 的安全端口
+    - 在 KubeProxyConfiguration 类型的 JSON 文件配置主要参数
+    - 使用iptables代理模式
+
+集群插件:
+    - flanneld: CNI方式使用kubernetes作为后端存储提供CIDR分配及管理。
+    - DNS： 使用Coredns
+    - dashboard: 支持登陆认证
+    - metric: heapster\metrics-server 使用https访问kubelet安全端口
+    - log: filebeat作为daemonset采集所有container的stdout和stderr日志输出至stdout,用户自定义存储目的地(kafka\redis\elasticsearch)
 
 ##### 环境准备
 
