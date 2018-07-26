@@ -20,6 +20,7 @@ nat_instance_type: t2.micro
 
 
 CLUSTER_DNS_DOMAIN: "cluster.local."
+kubeconf_dir: "{{ playbook_dir|dirname }}/kubeconfig"
 
 ## common config
 # common,aws
@@ -56,13 +57,15 @@ master_conf_dir: /data/apps/kubernetes/conf
 master_bin_dir: /data/apps/kubernetes/bin
 master_log_dir: /data/logs/kubernetes 
 BOOTSTRAP_TOKEN: b1eaeb543fbfcacc7e598ced4086d02e
+#生成 EncryptionConfig 所需的加密 key $(head -c 32 /dev/urandom | base64)
+ENCRYPTION_KEY: 1HzzI8uw99aN2Kzn6enadfgDuW611jBl9VrIOkMMOQ4=
 
 #node config
 kubernetes_conf_dir: /data/apps/kubernetes/conf
 kubernetes_bin_dir: /data/apps/kubernetes/bin
 kubernetes_log_dir: /data/logs/kubernetes
 
-kubernetes_version: v1.9.1
+kubernetes_version: v1.10.5
 docker_version: 17.03.2.ce-1
 
 cert_dir_tmp: "{{playbook_dir | dirname}}/.ssl" 
@@ -74,7 +77,7 @@ etcd_peer_url_scheme: https
 etcd_data_dir: /data/apps/etcd/data
 etcd_conf_dir: /data/apps/etcd/etc
 etcd_bin_dir: /data/apps/etcd/bin
-etcd_version: v3.1.10
+etcd_version: v3.1.12
 etcd_peer_group: etcd
 etcd_interface: eth0
 etcd_peer_port: 2380

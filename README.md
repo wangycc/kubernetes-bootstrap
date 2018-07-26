@@ -63,6 +63,7 @@ kube-proxy:
 
 ##### 环境准备
 
+
 - 安装epel源
 
 ```shell
@@ -78,6 +79,18 @@ yum install python-pip -y
 
 ```shell
 pip install ansible==2.5.1 -i https://pypi.douban.com/simple
+```
+
+- 主机名
+
+依次设置k8s集群每台机器永久主机名称(**唯一性**,etcd集群中使用主机名作为member名称)。建议可按照如下规则设置
+
+    - kubernetes master - kubernetes-master-00，依次递增
+    - kubernetes node  - kubernetes-node-00，依次递增
+    - etcd - etcd-00,依次递增
+
+```shell
+sudo hostnamectl set-hostname $hostname
 ```
 
 - 环境配置

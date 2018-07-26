@@ -12,23 +12,19 @@
 
 - include: cert.yaml
 
-- name: write the kubectl.kubeconfig (auth) file for kubectl
+- name: Copy the kubeconfig file to kubernetes master instance.
   template:
     src: kubectl.kubeconfig
     dest: "{{ kubernetes_conf_dir }}/kubectl.kubeconfig"
+ with_items:
+   - kubectl.kubeconfig
+   - kube-scheduler.kubeconfig
+   - kube-controller-manager.kubeconfig
 
 - name: write the kubectl.kubeconfig (auth) file for kubectl to ~/.kube/config
   template:
     src: kubectl.kubeconfig
     dest: "~/.kube/config"
-
-- name: Create TLS Bootstrapping Token
-  template:
-    src: "{{ role_path }}/templates/token.csv"
-    dest: "{{ kubernetes_conf_dir }}" 
-    owner: root
-    group: root
-    mode: 0644
 
 - name: Copy the binary file to master instance.
   copy:
@@ -56,6 +52,7 @@
     - controller-manager
     - config
     - scheduler
+    - encryption-config.yaml
   register: change_master_config
 
 - name: Copy the systemd unit file to node

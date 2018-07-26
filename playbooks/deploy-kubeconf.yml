@@ -1,0 +1,7 @@
+---
+- name: Deploy kubeconfig
+  become: true
+  hosts: localhost
+  connection: local
+  roles:
+    - kubeconfig
