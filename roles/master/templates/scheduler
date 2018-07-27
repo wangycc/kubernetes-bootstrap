@@ -1,4 +1,4 @@
 # default config should be adequate
 
 # Add your own!
-KUBE_SCHEDULER_ARGS="--leader-elect=true --address=127.0.0.1 --kubeconfig=/etc/kubernetes/kube-scheduler.kubeconfig "
+KUBE_SCHEDULER_ARGS="--leader-elect=true --address=127.0.0.1 --kubeconfig={{ kubernetes_conf_dir }}/kube-scheduler.kubeconfig"

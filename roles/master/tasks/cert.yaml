@@ -11,6 +11,10 @@
     - etcd.pem
     - kubernetes-key.pem
     - kubernetes.pem
+    - kube-controller-manager.pem
+    - kube-controller-manager-key.pem
+    - kube-scheduler.pem
+    - kube-scheduler-key.pem
     - ca-key.pem
     - ca.pem
   register: pki_certs

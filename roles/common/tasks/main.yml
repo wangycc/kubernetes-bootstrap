@@ -11,11 +11,9 @@
 - name: Install dependencies
   shell: |
     sudo yum install -y conntrack ipvsadm ipset jq sysstat curl iptables libseccomp
-    sudo systemctl stop firewalld
-    sudo systemctl disable firewalld
     sudo swapoff -a
     sudo setenforce 0
     # 检查内核和模块是否适合运行docker
-    curl -s https://raw.githubusercontent.com/docker/docker/master/contrib/check-config.sh | bash
+    #curl -s https://raw.githubusercontent.com/docker/docker/master/contrib/check-config.sh | bash
 
     
