@@ -56,6 +56,7 @@
   with_items:
     - kubelet
     - proxy
+    - kubelet.config.json
   notify:
     - restart kubelet
   register: change_kubelet_config

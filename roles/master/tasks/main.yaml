@@ -106,10 +106,10 @@
 - debug: var=kubernetes_cluster_status.stdout_lines
   tags: status
 
-#- name: Fix RBAC. add the system:nodes group binding to the clusterrolebinding system:node subjects section
-#  command: |-
-#    {{ kubernetes_bin_dir }}/kubectl --kubeconfig="{{ kubernetes_conf_dir }}/kubectl.kubeconfig" set subject clusterrolebinding system:node --group=system:nodes
-#  run_once: yes
-#  register: binding_group_to_clusterrole
+- name: Fix RBAC. add the system:nodes group binding to the clusterrolebinding system:node subjects section
+  command: |-
+    {{ kubernetes_bin_dir }}/kubectl --kubeconfig="{{ kubernetes_conf_dir }}/kubectl.kubeconfig" set subject clusterrolebinding system:node --group=system:nodes
+  run_once: yes
+  register: binding_group_to_clusterrole
         
-#- debug: var=binding_group_to_clusterrole.stdout_lines
+- debug: var=binding_group_to_clusterrole.stdout_lines

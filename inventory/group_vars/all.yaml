@@ -28,7 +28,7 @@ provider: common
 
 ## flanneld config
 flannel_etcd_prefix: /kube-centos/network
-flannel_version: v0.9.1
+flannel_version: v0.10.0
 flannel_log_dir: /data/logs/flannel
 flannel_conf_dir: /data/apps/flannel/conf
 flannel_bin_dir: /data/apps/flannel/bin

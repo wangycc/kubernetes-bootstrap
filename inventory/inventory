@@ -1,9 +1,10 @@
 [nodes]
-10.100.0.10 kubelet_label=node-role.kubernetes.io/node=true
-10.100.0.7 kubelet_label=node-role.kubernetes.io/node=true
+192.168.122.46 kubelet_label=node-role.kubernetes.io/node=true
+192.168.122.86 kubelet_label=node-role.kubernetes.io/master=true
+
 
 [etcd]
-192.168.122.210
+192.168.122.86
 
 [masters]
-192.168.122.210
+192.168.122.86
