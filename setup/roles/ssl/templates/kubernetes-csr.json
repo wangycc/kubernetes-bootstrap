@@ -1,0 +1,32 @@
+{
+    "CN": "kubernetes",
+    "hosts": [
+      "kubernetes",
+      "kubernetes.default",
+      "kubernetes.default.svc",
+      "kubernetes.default.svc.cluster",
+      "kubernetes.default.svc.cluster.local",
+      "{{ cluster_kubernetes_svc_ip }}",
+      "127.0.0.1",
+     {% for ip in groups['masters'] %}
+       {%- if not loop.last -%}
+   "{{ ip }}",
+       {% else -%}
+   "{{ ip }}"
+       {% endif %}
+     {% endfor %}
+    ],
+    "key": {
+        "algo": "rsa",
+        "size": 2048
+    },
+    "names": [
+        {
+            "C": "CN",
+            "ST": "BeiJing",
+            "L": "BeiJing",
+            "O": "k8s",
+            "OU": "System"
+        }
+    ]
+}

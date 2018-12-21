@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name:  configuration
+spec:
+  selector:
+    matchLabels:
+      app: configuration 
+  serviceName: "configuration"
+  podManagementPolicy: "Parallel"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: configuration
+    spec:
+      terminationGracePeriodSeconds: 10
+      nodeSelector:
+        kubernetes.io/hostname: 10.111.209.190
+      containers:
+      - name: configuration
+        image: hub.pri.ibanyu.com/service/configuration:latest-test
+        imagePullPolicy: Always
+        args:
+          - -serv
+          - base/configuration
+          - --skey
+          - "$(MY_POD_NAME)"
+        env:
+          - name: MY_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+        volumeMounts:
+        - name: log-dir
+          mountPath: /data/servicelog/wread0
+      volumes:
+      - name: log-dir
+        hostPath:
+          path: /data/servicelog/wread0
+          type: Directory

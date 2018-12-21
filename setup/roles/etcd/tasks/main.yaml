@@ -1,0 +1,62 @@
+---
+
+- name: Create directory
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+    owner: "{{ systemd_user }}"
+    group: "{{ systemd_user }}"
+  with_items:
+    - "{{ etcd_conf_dir }}"
+    - "{{ etcd_bin_dir }}"
+    - "{{ etcd_data_dir }}"
+    - "{{ etcd_cert_dir }}"
+
+- include: cert.yaml 
+
+- name: Copy the binary file to node instance.
+  copy:
+    src: "{{ resources_dir }}/bin/{{ item }}" 
+    dest: "{{ etcd_bin_dir }}/{{ item }}"
+    owner: "{{ systemd_user }}"
+    group: "{{ systemd_user }}"
+    mode: 0755
+  with_items:
+    - etcd
+    - etcdctl
+
+- name: Create etcd Configuration file
+  template:
+    src: "{{ role_path }}/templates/{{ item }}"
+    dest: "{{ etcd_conf_dir }}/{{ item }}"
+    owner: "{{ systemd_user }}"
+    group: "{{ systemd_user }}"
+    mode: 0644
+  with_items:
+    - etcd.conf
+  notify:
+    - restart etcd
+
+- name: Copy the systemd unit file to node
+  template:
+    src: "{{ role_path }}/templates/service/{{ item }}"
+    dest: "/usr/lib/systemd/system/{{ item }}"
+    owner: "{{ systemd_user }}"
+    group: "{{ systemd_user }}"
+    mode: 0644
+  with_items:
+    - etcd.service
+  notify:
+    - restart etcd
+
+- name: get etcd status
+  command: |-
+    {{ etcd_bin_dir }}/etcdctl --ca-file={{ etcd_peer_ca_file }} \
+    --cert-file={{ etcd_peer_cert_file }} --key-file={{ etcd_peer_key_file}} cluster-health
+  delegate_to: "{{ groups['etcd'][0] }}"
+  run_once: yes
+  register: etcd_status
+  tags: status
+- debug: var=etcd_status.stdout_lines
+  tags: status

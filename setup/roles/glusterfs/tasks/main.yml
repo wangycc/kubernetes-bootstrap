@@ -1,0 +1,17 @@
+---
+
+- name: Installing GlusterFS Repo(4.1 Long Term Stable)
+  yum:
+    name: centos-release-gluster41.noarch
+    
+- name: Installing GlusterFS Server
+  yum:
+    name: glusterfs-server
+    state: latest
+
+- name: Starting glusterfs server
+  systemd:
+    name: glusterd
+    state: started
+    daemon_reload: true
+

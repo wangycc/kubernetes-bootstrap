@@ -1,0 +1,15 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: infra-wayne
+  namespace: default 
+spec:
+  rules:
+    - host: wayne.k8s.ibanyu.com 
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: infra-wayne
+              servicePort: 8080

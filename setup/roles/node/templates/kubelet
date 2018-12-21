@@ -1,0 +1,10 @@
+#kubernetes kubelet (minion) config
+
+## You may leave this blank to use the actual hostname
+#KUBELET_HOSTNAME="--hostname-override="
+## pod infrastructure container
+KUBELET_POD_INFRA_CONTAINER="--pod-infra-container-image={{ kubelet_pod_infra_container }}"
+#t"
+#
+## Add your own!
+KUBELET_ARGS="--config={{ kubernetes_conf_dir }}/kubelet-config.yml --bootstrap-kubeconfig={{ kubernetes_conf_dir }}/bootstrap.kubeconfig --kubeconfig={{ kubernetes_conf_dir }}/kubelet.kubeconfig --cert-dir={{ cert_dir }} --allow-privileged=true --logtostderr=false --v=0 --log-dir={{ kubernetes_log_dir }} --node-labels={{ kubelet_label }}  --allowed-unsafe-sysctls='net.*' --system-reserved=memory={{ system_reserved_memory }} --fail-swap-on=false --hostname-override={{ inventory_hostname }}"

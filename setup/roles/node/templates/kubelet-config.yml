@@ -1,0 +1,28 @@
+kind: KubeletConfiguration
+apiVersion: kubelet.config.k8s.io/v1beta1
+address: {{ inventory_hostname }}
+readOnlyPort: 10255
+port: 10250
+cgroupDriver: cgroupfs
+clusterDNS:
+  - {{ cluster_dns }}
+clusterDomain: {{ cluster_domain }} 
+hairpinMode: promiscuous-bridge
+serializeImagePulls: false
+authentication:
+  x509:
+    clientCAFile: /data/apps/kubernetes/ssl/ca.pem
+  anonymous:
+    enbaled: false
+  webhook:
+    enbaled: true
+    cacheTTL: 2m0s
+serializeImagePulls: false
+authorization:
+  mode: Webhook
+  webhook:
+    cacheAuthorizedTTL: 5m0s
+    cacheUnauthorizedTTL: 30s
+featureGates:
+  RotateKubeletClientCertificate: true
+  RotateKubeletServerCertificate: true 

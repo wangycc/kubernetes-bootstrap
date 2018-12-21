@@ -1,0 +1,135 @@
+# do actual downloading
+- include_vars: file={{ playbook_dir |dirname }}/inventory/group_vars/all.yaml
+
+- name: create downloads and resources directories
+  file: path="{{ item}}" state=directory mode=0755
+  with_items:
+    - "{{ downloads_dir }}"
+    - "{{ resources_dir }}"
+    - "{{ resources_dir }}/bin"
+  tags:
+    - kubernetes
+    - flanneld
+    - etcd
+
+- name: "download kubernetes binary {{ test_kubernetes }}"
+  get_url: url={{ item.url }} dest={{ downloads_dir }}/{{ item.name }}-{{ item.version }}.tar.gz force=yes validate_certs=no
+  with_items: 
+    - "{{ kubernetes_packages }}" 
+  tags:
+    - kubernetes
+  
+- name: download etcd binary
+  get_url: url={{ item.url }} dest={{ downloads_dir }}/etcd-{{ etcd_version }}.tar.gz force=yes validate_certs=no
+  with_items: 
+    - "{{ etcd_packages }}" 
+  tags:
+    - etcd
+
+- name: download flannel binary
+  get_url: url={{ item.url }} dest={{ downloads_dir }}/flannel-{{ flannel_version }}.tar.gz force=yes validate_certs=no
+  with_items: 
+    - "{{ flannel_packages }}"
+  tags:
+    - flanneld 
+
+#- name: download cni binary
+#  get_url:
+#    url: https://github.com/containernetworking/plugins/releases/download/v0.7.1/cni-plugins-amd64-v0.7.1.tgz
+#    dest: "{{ downloads_dir }}/cni-plugins-amd64-v0.7.1.tgz"
+#    force: yes
+#    validate_certs: no
+#  tags:
+#    - cni
+
+#- name: unarchive cni binary
+#  shell: ls -1 cni-plugins-amd64-v0.7.1.tgz | xargs -n1 tar xzf
+#  args:
+#    chdir: "{{ downloads_dir }}"
+#    warn: no
+#  tags:
+#    - cni
+
+- name: unarchive kubernetes binary
+  shell: ls -1 {{ item.name }}-{{ item.version }}.tar.gz | xargs -n1 tar xzf
+  args:
+    chdir: "{{ downloads_dir }}"
+    warn: no
+  with_items: "{{ kubernetes_packages }}"
+  tags:
+    - kubernetes 
+
+- name: unarchive etcd binary
+  shell: ls -1 etcd-{{ etcd_version }}.tar.gz | xargs -n1 tar xzf
+  args:
+    chdir: "{{ downloads_dir }}"
+    warn: no
+  tags:
+    - etcd
+
+- name: unarchive flanneld binary
+  shell: ls -1 flannel-{{ flannel_version }}.tar.gz | xargs -n1 tar xzf
+  args:
+    chdir: "{{ downloads_dir }}"
+    warn: no
+  tags:
+    - flanneld 
+
+
+- name: cp flannel binary
+  shell: >
+    cp -v {{ downloads_dir }}/{{ item }} "{{ resources_dir }}/bin/"
+  with_items: 
+    - flanneld
+    - mk-docker-opts.sh
+  tags:
+    - flanneld 
+
+#- name: cp cni binary
+#  shell: >
+#    cp -v {{ downloads_dir }}/{{ item }} "{{ resources_dir }}/bin/"
+#  with_items: 
+#    - bridge
+#    - flannel
+#    - host-local
+#    - loopback 
+#    - portmap 
+#    - host-device
+#    - ipvlan
+#    - macvlan
+#    - dhcp
+#    - vlan
+#    - tuning
+#    - sample
+#    - host-device 
+#    - ptp
+#  tags:
+#    - cni 
+
+- name: cp etcd binary
+  shell: >
+    cp -v {{ downloads_dir }}/etcd-{{ etcd_version }}-linux-amd64/{{ item }} "{{ resources_dir }}/bin/{{ item }}"
+  with_items: 
+    - etcd
+    - etcdctl
+  tags:
+    - etcd 
+ 
+- name: cp kubernetes binary
+  shell: >
+    cp -v {{ downloads_dir }}/kubernetes/server/bin/{{ item }} "{{ resources_dir }}/bin/{{ item }}"
+  with_items: 
+    - cloud-controller-manager
+    - kube-apiserver
+    - kube-controller-manager
+    - kubectl
+    - kubelet
+    - kube-proxy
+    - kube-scheduler
+  tags:
+    - kubernetes 
+  
+- name: clean up download dir
+  shell: >
+    cd "{{ downloads_dir }}" && find . -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} \; && \
+    mv flanneld mk-docker-opts.sh README.md /tmp/ 

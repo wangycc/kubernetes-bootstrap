@@ -1,0 +1,16 @@
+*.retry
+temp
+.DS_Store
+.idea
+.tox
+.cache
+*.bak
+*.egg-info
+*.pyc
+*.pyo
+**/*.sw[pon]
+**/*.sw[pon]
+downloads/
+resources/
+client/
+.terraform

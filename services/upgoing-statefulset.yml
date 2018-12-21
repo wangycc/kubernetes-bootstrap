@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name:  upgoing
+spec:
+  selector:
+    matchLabels:
+      app: upgoing 
+  serviceName: "upgoing"
+  podManagementPolicy: "Parallel"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: upgoing
+    spec:
+      terminationGracePeriodSeconds: 10
+      nodeSelector:
+        kubernetes.io/hostname: 10.111.209.190
+      containers:
+      - name: upgoing
+        image: hub.pri.ibanyu.com/service/upgoing:latest-test
+        imagePullPolicy: Always
+        args:
+          - -serv
+          - base/upgoing
+          - --skey
+          - "$(MY_POD_NAME)"
+        env:
+          - name: MY_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+        volumeMounts:
+        - name: log-dir
+          mountPath: /data/servicelog/wread0
+      volumes:
+      - name: log-dir
+        hostPath:
+          path: /data/servicelog/wread0
+          type: Directory

@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name:  rtc
+spec:
+  selector:
+    matchLabels:
+      app: rtc 
+  serviceName: "rtc"
+  podManagementPolicy: "Parallel"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: rtc
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: rtc
+        image: hub.pri.ibanyu.com/service/rtc:20181206-115945-test
+        args:
+          - -serv
+          - media/rtc
+          - --skey
+          - "$(MY_POD_NAME)"
+        env:
+          - name: MY_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name

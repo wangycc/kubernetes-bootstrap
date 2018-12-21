@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+    name: devops
+---
+apiVersion: v1
+data:
+    .dockercfg: eyJhdXRocyI6eyJodHRwczovL2h1Yi5wcmkuaWJhbnl1LmNvbSI6eyJ1c2VybmFtZSI6ImRldm9wcyIsInBhc3N3b3JkIjoiYmFueXUyMDE1fjIwMTgiLCJhdXRoIjoiWkdWMmIzQnpPbUpoYm5sMU1qQXhOWDR5TURFNCJ9fX0= 
+kind: Secret
+metadata:
+    name: docker-secret
+    namespace: devops
+type: kubernetes.io/dockercfg

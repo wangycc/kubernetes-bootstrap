@@ -1,0 +1,31 @@
+
+{% macro initial_cluster() -%}
+{% for host in groups[etcd_peer_group] %}
+{{ etcd_peer_url_scheme }}://{{ hostvars[host]['inventory_hostname'] }}:{{ etcd_client_port }}
+{%- if not loop.last -%},{%- endif -%}
+{%- endfor -%}
+{% endmacro -%}
+
+
+
+# The address on the local server to listen to.
+KUBE_API_ADDRESS="--advertise-address={{ inventory_hostname }} --bind-address={{ inventory_hostname }} --insecure-bind-address={{ inventory_hostname }} --insecure-port=8080"
+
+
+# Comma separated list of nodes in the etcd cluster
+# KUBE_ETCD_SERVERS="--etcd-servers=https://192.168.4.174:2379,https://192.168.2.7:2379,https://192.168.4.232:2379"
+KUBE_ETCD_SERVERS="--etcd-servers={{ initial_cluster() }}"
+
+# Address range to use for services
+KUBE_SERVICE_ADDRESSES="--service-cluster-ip-range={{ service_cluster_ip_range }}"
+
+# default admission control policies
+#KUBE_ADMISSION_CONTROL="--enable-admission-plugins=Initializers,NamespaceLifecycle,NodeRestriction,LimitRanger,DefaultStorageClass,ResourceQuota"
+# https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/
+KUBE_ADMISSION_CONTROL="--enable-admission-plugins=NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,DefaultTolerationSeconds,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota"
+
+# metrics-server
+METRICS_SERVER="--requestheader-client-ca-file={{ cert_dir }}/ca.pem --requestheader-extra-headers-prefix=X-Remote-Extra- --requestheader-group-headers=X-Remote-Group --requestheader-username-headers=X-Remote-User --proxy-client-cert-file={{ cert_dir }}/metrics-server.pem --proxy-client-key-file={{ cert_dir }}/metrics-server-key.pem --runtime-config=api/all=true --enable-aggregator-routing=true"
+
+#### Add your own!
+KUBE_API_ARGS="--anonymous-auth=false --experimental-encryption-provider-config={{ kubernetes_conf_dir }}/encryption-config.yaml --authorization-mode=Node,RBAC --kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP  --kubelet-https=true --enable-bootstrap-token-auth=true --token-auth-file={{ kubernetes_conf_dir }}/token.csv  --tls-cert-file={{ cert_dir }}/kubernetes.pem --tls-private-key-file={{ cert_dir }}/kubernetes-key.pem --client-ca-file={{ cert_dir }}/ca.pem --kubelet-client-certificate={{cert_dir}}/kubernetes.pem --kubelet-client-key={{ cert_dir }}/kubernetes-key.pem --service-account-key-file={{ cert_dir }}/ca-key.pem --storage-backend=etcd3 --etcd-cafile={{ cert_dir }}/ca.pem --etcd-certfile={{ cert_dir }}/etcd.pem --etcd-keyfile={{ cert_dir }}/etcd-key.pem --enable-swagger-ui=true --apiserver-count={{ groups['masters'] | length }} --audit-log-maxage=30 --audit-log-maxbackup=3 --audit-log-maxsize=100 --audit-log-path={{kubernetes_log_dir}}/audit.log --event-ttl=1h  --service-node-port-range=30000-50000"

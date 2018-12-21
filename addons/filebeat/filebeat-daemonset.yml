@@ -1,0 +1,179 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: filebeat-config
+  namespace: kube-system
+  labels:
+    k8s-app: filebeat
+data:
+  filebeat.yml: |-
+    filebeat.config:
+      inputs:
+        # Mounted `filebeat-inputs` configmap:
+        path: /usr/share/filebeat/inputs.d/*.yml
+        # Reload inputs configs as they change:
+        reload.enabled: true
+      modules:
+        path: /usr/share/filebeat/modules.d/*.yml
+        # Reload module configs as they change:
+        reload.enabled: true
+
+    output.file:
+      path: "/tmp/%{[kubernetes][container][name]}" 
+      filename: log.txt
+      codec.format:
+        string: '%{[message]}'
+
+    #output.kafka:
+    #  hosts:
+    #    - 10.200.8.221:9093
+    #    - 10.200.8.125:9093
+    #    - 10.200.7.88:9093
+    #  version: 0.9.0.1
+    #  topic: 'filebeat-kubernetes-triones'
+    #  partition.round_robin:
+    #    reachable_only: false
+    #  compression: snappy
+    spool_size: 2048
+    idle_timeout: 5s
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: filebeat-inputs
+  namespace: kube-system
+  labels:
+    k8s-app: filebeat
+data:
+  kubernetes.yml: |-
+    - type: docker
+      # filebeat 7.0以后支持
+      combine_partials: true
+      containers.ids:
+        - "*"
+      encoding: plain
+      fields_under_root: true
+      ignore_older: 0
+      close_older: 1h
+      scan_frequency: 10s
+      harvester_buffer_size: 16384
+      max_bytes: 10485760
+      tail_files: true
+      backoff: 1s
+      max_backoff: 10s
+      backoff_factor: 2
+      # comment(wangyichen),pod template中添加如下annotatio将被采集日志以及设置ES索引.
+      # filebeat.harvest: Only harvest pods that have a value of `true`
+      # filebeat.index: Set the index value stored in elasticsearch
+      processors:
+        - add_kubernetes_metadata:
+            in_cluster: true
+            include_annotations:
+              - "filebeat.harvest"
+              - "filebeat.index"
+        - drop_event:
+            when:
+              not:
+                equals:
+                  kubernetes.annotations.filebeat.harvest: "true"
+---
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: filebeat
+  namespace: kube-system
+  labels:
+    k8s-app: filebeat
+spec:
+  template:
+    metadata:
+      labels:
+        k8s-app: filebeat
+    spec:
+      serviceAccountName: filebeat
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: filebeat
+          image: wangyichen/filebeat:6.3.1
+          args: [
+            "-c", "/etc/filebeat.yml",
+            "-e",
+          ]
+          securityContext:
+            runAsUser: 0
+          resources:
+            limits:
+              memory: 200Mi
+            requests:
+              cpu: 100m
+              memory: 100Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/filebeat.yml
+              readOnly: true
+              subPath: filebeat.yml
+            - name: inputs
+              mountPath: /usr/share/filebeat/inputs.d
+              readOnly: true
+            - name: data
+              mountPath: /usr/share/filebeat/data
+            - name: varlibdockercontainers
+              mountPath: /var/lib/docker/containers
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            defaultMode: 0600
+            name: filebeat-config
+        - name: varlibdockercontainers
+          hostPath:
+            path: /data/data/docker/containers
+        - name: inputs
+          configMap:
+            defaultMode: 0600
+            name: filebeat-inputs
+        # We set an `emptyDir` here to ensure the manifest will deploy correctly.
+        # It's recommended to change this to a `hostPath` folder, to ensure internal data
+        # files survive pod changes (ie: version upgrade)
+        - name: data
+          emptyDir: {}
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: filebeat
+subjects:
+  - kind: ServiceAccount
+    name: filebeat
+    namespace: kube-system
+roleRef:
+  kind: ClusterRole
+  name: filebeat
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+  name: filebeat
+  labels:
+    k8s-app: filebeat
+rules:
+  # "" indicates the core API group
+  - apiGroups: [""]
+    resources:
+      - namespaces
+      - pods
+    verbs:
+      - get
+      - watch
+      - list
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: filebeat
+  namespace: kube-system
+  labels:
+    k8s-app: filebeat
+---

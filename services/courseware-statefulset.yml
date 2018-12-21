@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name:  courseware
+spec:
+  selector:
+    matchLabels:
+      app: courseware 
+  serviceName: "courseware"
+  podManagementPolicy: "Parallel"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: courseware
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: courseware
+        image: hub.pri.ibanyu.com/service/courseware:20181206-112348-test
+        args:
+          - -serv
+          - ugc/courseware
+          - --skey
+          - "$(MY_POD_NAME)"
+        env:
+          - name: MY_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name

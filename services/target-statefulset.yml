@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name:  target
+spec:
+  selector:
+    matchLabels:
+      app: target 
+  serviceName: "target"
+  podManagementPolicy: "Parallel"
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        filebeat.harvest: "true"
+      labels:
+        app: target
+    spec:
+      terminationGracePeriodSeconds: 10
+      nodeSelector:
+        kubernetes.io/hostname: 10.111.209.190
+      containers:
+      - name: target
+        image: hub.pri.ibanyu.com/service/target:latest-test
+        imagePullPolicy: Always
+        args:
+          - -serv
+          - ugc/target
+          - -skey
+          - "$(MY_POD_NAME)"
+          - -logdir 
+          - console 
+        env:
+          - name: MY_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+        volumeMounts:
+        - name: log-dir
+          mountPath: /data/servicelog/wread0
+      volumes:
+      - name: log-dir
+        hostPath:
+          path: /data/servicelog/wread0
+          type: Directory

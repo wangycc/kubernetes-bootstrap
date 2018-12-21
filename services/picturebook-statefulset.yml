@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name:  picturebook
+spec:
+  selector:
+    matchLabels:
+      app: picturebook 
+  serviceName: "picturebook"
+  podManagementPolicy: "Parallel"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: picturebook
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: picturebook
+        image: hub.pri.ibanyu.com/service/picturebook:20181206-120722-test
+        args:
+          - -serv
+          - ugc/picturebook
+          - --skey
+          - "$(MY_POD_NAME)"
+        env:
+          - name: MY_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name

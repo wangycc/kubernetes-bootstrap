@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name:  growthsystem
+spec:
+  selector:
+    matchLabels:
+      app: growthsystem 
+  serviceName: "growthsystem"
+  podManagementPolicy: "Parallel"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: growthsystem
+    spec:
+      terminationGracePeriodSeconds: 10
+      nodeSelector:
+        kubernetes.io/hostname: 10.111.209.190
+      containers:
+      - name: growthsystem
+        image: hub.pri.ibanyu.com/service/growthsystem:20181206-120457-test
+        imagePullPolicy: Always
+        args:
+          - -serv
+          - base/growthsystem
+          - --skey
+          - "$(MY_POD_NAME)"
+        env:
+          - name: MY_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+        volumeMounts:
+        - name: log-dir
+          mountPath: /data/servicelog/wread0
+      volumes:
+      - name: log-dir
+        hostPath:
+          path: /data/servicelog/wread0
+          type: Directory

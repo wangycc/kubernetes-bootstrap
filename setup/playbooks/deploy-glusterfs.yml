@@ -1,0 +1,8 @@
+---
+- name: Deploy GFS
+  hosts: glusterfs
+  become: true
+  roles:
+    - glusterfs
+  tags:
+    - glusterfs

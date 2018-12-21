@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name:  abtesting
+spec:
+  selector:
+    matchLabels:
+      app: abtesting 
+  serviceName: "abtesting"
+  podManagementPolicy: "Parallel"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: abtesting
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: abtesting
+        image: hub.pri.ibanyu.com/service/abtesting:20181206-155414-test
+        args:
+          - -serv
+          - base/abtesting
+          - --skey
+          - "$(MY_POD_NAME)"
+        env:
+          - name: MY_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name

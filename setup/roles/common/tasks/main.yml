@@ -1,0 +1,21 @@
+---
+
+- name: set hostname
+  shell: |
+    hostname=$(curl http://169.254.169.254/latest/meta-data/hostname)
+    echo ${hostname} > /etc/hostname 
+    hostname ${hostname}
+  become: True
+  when: provider == "aws"
+
+- name: Install dependencies
+  become: True
+  shell: |
+    set -ex
+    yum install -y conntrack ipvsadm ipset jq sysstat curl iptables libseccomp
+    swapoff -a
+    #setenforce 0
+    # 检查内核和模块是否适合运行docker
+    #curl -s https://raw.githubusercontent.com/docker/docker/master/contrib/check-config.sh | bash
+
+    

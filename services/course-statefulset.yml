@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name:  course
+spec:
+  selector:
+    matchLabels:
+      app: course 
+  serviceName: "course"
+  podManagementPolicy: "Parallel"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: course
+    spec:
+      terminationGracePeriodSeconds: 10
+      nodeSelector:
+        kubernetes.io/hostname: 10.111.209.190
+      containers:
+      - name: course
+        image: hub.pri.ibanyu.com/service/course:20181206-203017-test
+        imagePullPolicy: Always
+        args:
+          - -serv
+          - ugc/course
+          - --skey
+          - "$(MY_POD_NAME)"
+        env:
+          - name: MY_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+        volumeMounts:
+        - name: log-dir
+          mountPath: /data/servicelog/wread0
+      volumes:
+      - name: log-dir
+        hostPath:
+          path: /data/servicelog/wread0
+          type: Directory

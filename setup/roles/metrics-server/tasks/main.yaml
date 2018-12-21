@@ -1,0 +1,106 @@
+---
+
+- name: copy metrics-server certs to apiserver 
+  copy:
+    src: {{ cert_dir_tmp }}/{{ item }}
+    dest: {{ cert_dir }}/{{ item }} 
+    owner: {{ systemd_user }}
+    group: {{ systemd_user }}
+  with_items:
+    - metrics-server.pem 
+    - metrics-server-key.pem 
+    
+- name: Create the kubelet data directory
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+  with_items:
+    - "{{ kubernetes_log_dir }}"
+    - "{{ kubernetes_conf_dir }}"
+    - "{{ kubernetes_bin_dir }}"
+    - /var/lib/kubelet
+
+- include: cert.yaml
+
+- name: write the kubelet-bootstrap.conf file for kubelet
+  template:
+    src: bootstrap.kubeconfig 
+    dest: "{{ kubernetes_conf_dir }}/bootstrap.kubeconfig"
+    backup: yes
+  notify: restart kubelet
+- name: write the kube-proxy.kubeconfig(auth) file for kube-proxy
+  template:
+    src: kube-proxy.kubeconfig
+    dest: "{{ kubernetes_conf_dir }}/kube-proxy.kubeconfig"
+    backup: yes
+  notify: restart kube-proxy
+  
+- name: Copy the binary file to node instance.
+  copy:
+    src: "{{ resources_dir }}/bin/{{ item }}" 
+    dest: "{{ kubernetes_bin_dir }}/{{ item }}"
+    owner: root
+    group: root
+    mode: 0755
+    backup: True
+  with_items:
+    - kubelet
+    - kube-proxy
+    - bridge
+    - flannel
+    - host-local
+    - loopback 
+    - portmap 
+    - host-device
+    - ipvlan
+    - macvlan
+    - dhcp
+    - vlan
+    - tuning
+    - sample
+    - host-device 
+    - ptp
+
+- name: Create kubernets node Configuration file
+  template:
+    src: "{{ role_path  }}/templates/{{ item  }}"
+    dest: "{{ kubernetes_conf_dir }}/{{ item  }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - kubelet
+    - proxy
+    - kubelet-config.yml 
+  notify:
+    - restart kubelet
+  register: change_kubelet_config
+
+- include: centos.yml
+  when: ansible_distribution == 'CentOS' and ansible_distribution_version >= 7
+  
+- include: ubuntu.yml
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_version == '14.04'
+
+- name: approve kuberlet certificate
+  raw: |-
+    {{ kubernetes_bin_dir }}/kubectl --kubeconfig="{{ kubernetes_conf_dir }}/kubectl.kubeconfig" certificate approve $({{ kubernetes_bin_dir }}/kubectl --kubeconfig={{ kubernetes_conf_dir }}/kubectl.kubeconfig get csr | grep -v NAME | awk '{print $1}')
+  delegate_to: "{{ groups['masters'][0] }}"
+  run_once: yes
+  register: approve_kubelet 
+  tags: approve
+  ignore_errors: true
+
+- debug: var=approve_kubelet.stdout_lines
+  tags: approve
+
+- name: Get kubernetes node status
+  command: |-
+    {{ kubernetes_bin_dir }}/kubectl --kubeconfig="{{ kubernetes_conf_dir }}/kubectl.kubeconfig" get node
+  delegate_to: "{{ groups['masters'][0] }}"
+  run_once: yes
+  register: kubernetes_cluster_status
+  tags: status
+- debug: var=kubernetes_cluster_status.stdout_lines
+  tags: status

@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name:  honour
+spec:
+  selector:
+    matchLabels:
+      app: honour 
+  serviceName: "honour"
+  podManagementPolicy: "Parallel"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: honour
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: honour
+        image: hub.pri.ibanyu.com/service/honour:20181206-112608-test
+        args:
+          - -serv
+          - status/honour
+          - --skey
+          - "$(MY_POD_NAME)"
+        env:
+          - name: MY_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name

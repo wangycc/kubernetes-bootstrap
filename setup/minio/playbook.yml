@@ -1,0 +1,7 @@
+---
+
+- hosts: all
+  roles:
+    - {role: minio}
+    # minio_server_datadirs: ["/data/apps/minio/data/export","/data/apps/minio/data/export1"]}
+  become: true

@@ -1,0 +1,6 @@
+---
+- name: Deploy ssl
+  hosts: localhost
+  connection: local
+  roles:
+    - ssl

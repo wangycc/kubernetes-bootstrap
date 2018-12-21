@@ -1,0 +1,45 @@
+[nodes]
+10.111.209.188 kubelet_label=node-role.kubernetes.io/node=true
+10.111.209.189 kubelet_label=node-role.kubernetes.io/node=true
+10.111.209.190 kubelet_label=node-role.kubernetes.io/node=true,prometheus=true,edge=true
+
+#10.111.201.1 kubelet_label=node-role.kubernetes.io/master=true
+#10.111.201.2 kubelet_label=node-role.kubernetes.io/master=true
+#10.111.201.3 kubelet_label=node-role.kubernetes.io/master=true
+#10.111.201.5 kubelet_label=node-role.kubernetes.io/master=true
+#10.111.201.6 kubelet_label=node-role.kubernetes.io/master=true
+
+
+
+
+[etcd]
+10.111.209.188
+10.111.209.189
+10.111.209.190
+#10.111.201.1
+#10.111.201.2
+#10.111.201.3
+#10.111.201.5
+#10.111.201.6
+
+[masters]
+10.111.209.188 peer_name=k8s1
+10.111.209.189 peer_name=k8s2
+10.111.209.190 peer_name=k8s3
+#10.111.201.1
+#10.111.201.2
+#10.111.201.3
+#10.111.201.5
+#10.111.201.6
+
+[glusterfs]
+10.111.209.188
+10.111.209.189
+10.111.209.190
+
+[dep]
+10.111.201.1
+10.111.201.2
+10.111.201.3
+10.111.201.5
+10.111.201.6

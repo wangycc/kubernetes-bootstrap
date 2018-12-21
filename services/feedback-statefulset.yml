@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name:  feedback
+spec:
+  selector:
+    matchLabels:
+      app: feedback 
+  serviceName: "feedback"
+  podManagementPolicy: "Parallel"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: feedback
+    spec:
+      terminationGracePeriodSeconds: 10
+      nodeSelector:
+        kubernetes.io/hostname: 10.111.209.190
+      containers:
+      - name: feedback
+        image: hub.pri.ibanyu.com/service/feedback:20181206-103145-test
+        volumeMounts:
+        - name: log-dir 
+          mountPath: /data/servicelog/wread0
+        args:
+          - -serv
+          - media/feedback
+          - --skey
+          - "$(MY_POD_NAME)"
+        env:
+          - name: MY_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+      volumes:
+      - name: log-dir
+        hostPath:
+          path: /data/servicelog/wread0
+          type: Directory

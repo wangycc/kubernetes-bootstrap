@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name:  cottage
+spec:
+  selector:
+    matchLabels:
+      app: cottage 
+  serviceName: "cottage"
+  podManagementPolicy: "Parallel"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: cottage
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: cottage
+        image: hub.pri.ibanyu.com/service/cottage:20181206-112506-test
+        args:
+          - -serv
+          - ugc/cottage
+          - --skey
+          - "$(MY_POD_NAME)"
+        env:
+          - name: MY_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name

@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: opapi 
+spec:
+  selector:
+    matchLabels:
+      app: opapi 
+  serviceName: "opapi"
+  podManagementPolicy: "Parallel"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: opapi
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: opapi
+        image: hub.pri.ibanyu.com/service/opapi:20181205-203537-test 
+        args:
+          - -serv
+          - api/opapi
+          - --skey
+          - "$(MY_POD_NAME)"
+        env:
+          - name: MY_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name

@@ -1,0 +1,140 @@
+---
+- name: Create the master  data directory
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+    owner: "{{ systemd_user }}"
+    group: "{{ systemd_user }}"
+  with_items:
+    - "{{ master_log_dir }}"
+    - "{{ master_conf_dir }}"
+    - "{{ master_bin_dir }}"
+    - "~/.kube"
+
+- include: cert.yaml
+
+- name: Copy the kubeconfig file to kubernetes master instance.
+  template:
+    src: "{{ item }}"
+    dest: "{{ kubernetes_conf_dir }}/{{ item }}"
+  with_items:
+    - kubectl.kubeconfig
+    - kube-scheduler.kubeconfig
+    - kube-controller-manager.kubeconfig
+  notify:
+    - restart kube-apiserver
+    - restart kube-controller-manager
+    - restart kube-scheduler
+
+- name: write the kubectl.kubeconfig (auth) file for kubectl to ~/.kube/config
+  template:
+    src: kubectl.kubeconfig
+    dest: "~/.kube/config"
+
+- name: Create TLS Bootstrapping Token
+  template:
+    src: "{{ role_path }}/templates/token.csv"
+    dest: "{{ kubernetes_conf_dir }}"
+    owner: "{{ systemd_user }}"
+    group: "{{ systemd_user }}"
+    mode: 0644
+
+- name: Copy the binary file to master instance.
+  copy:
+    src: "{{ resources_dir }}/bin/{{ item }}"
+    dest: "{{ master_bin_dir}}/{{ item }}"
+    owner: "{{ systemd_user }}"
+    group: "{{ systemd_user }}"
+    mode: 0755
+  with_items:
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-scheduler
+    - kubectl
+  
+
+- name: Create kubernets master Configuration file
+  template:
+    src: "{{ role_path  }}/templates/{{ item  }}"
+    dest: "{{ master_conf_dir}}/{{ item  }}"
+    owner: "{{ systemd_user }}"
+    group: "{{ systemd_user }}"
+    mode: 0644
+  register: change_master_config
+  with_items:
+    - apiserver
+    - controller-manager
+    - config
+    - scheduler
+    - encryption-config.yaml
+  notify:
+    - restart kube-apiserver
+    - restart kube-controller-manager
+    - restart kube-scheduler
+
+- name: Copy the systemd unit file to node
+  template:
+    src: "{{ role_path }}/templates/service/{{ item }}"
+    dest: "/usr/lib/systemd/system/{{ item }}"
+    owner: "{{ systemd_user }}"
+    group: "{{ systemd_user }}"
+    mode: 0644
+  register: change_master_system
+  with_items:
+    - kube-apiserver.service
+    - kube-controller-manager.service
+    - kube-scheduler.service
+  notify:
+    - restart kube-apiserver
+    - restart kube-controller-manager
+    - restart kube-scheduler
+
+- name: start and enable master service
+  when: change_master_system|succeeded and change_master_config|succeeded
+  systemd:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+    daemon_reload: true
+  with_items:
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-scheduler
+
+- name: Get kubernetes cluster status
+  command: |-
+    {{ kubernetes_bin_dir }}/kubectl --kubeconfig="{{ kubernetes_conf_dir }}/kubectl.kubeconfig" get cs
+  run_once: yes
+  register: kubernetes_cluster_status
+  tags: status
+- debug: var=kubernetes_cluster_status.stdout_lines
+  tags: status
+
+- name: 配置kubelet使用bootstrap
+  command: |-
+    {{ kubernetes_bin_dir }}/kubectl --kubeconfig="{{ kubernetes_conf_dir }}/kubectl.kubeconfig" create clusterrolebinding kubelet-bootstrap --clusterrole=system:node-bootstrapper --user=kubelet-bootstrap 
+  run_once: yes
+  register: binding_kubelet-bootstrap_to_clusterrole
+  ignore_errors: true
+
+- debug: var=binding_kubelet-bootstrap_to_clusterrole.stdout_lines
+
+- name: 授予 kubernetes 证书访问 kubelet API 的权限
+  command: |-
+    {{ kubernetes_bin_dir }}/kubectl --kubeconfig="{{ kubernetes_conf_dir }}/kubectl.kubeconfig" create clusterrolebinding kube-apiserver:kubelet-apis --clusterrole=system:kubelet-api-admin --user kubernetes
+  run_once: yes
+  register: binding_group_to_clusterrole
+  ignore_errors: true
+
+- debug: var=binding_group_to_clusterrole.stdout_lines
+
+  
+
+#- name: Fix RBAC. add the system:nodes group binding to the clusterrolebinding system:node subjects section
+#  command: |-
+#    {{ kubernetes_bin_dir }}/kubectl --kubeconfig="{{ kubernetes_conf_dir }}/kubectl.kubeconfig" set subject clusterrolebinding system:node --group=system:nodes
+#  run_once: yes
+#  register: binding_group_to_clusterrole
+#        
+#- debug: var=binding_group_to_clusterrole.stdout_lines

@@ -1,0 +1,26 @@
+---
+apiVersion: apps/v1
+kind: rtc 
+metadata:
+  name: web
+spec:
+  selector:
+    matchLabels:
+      app: rtc 
+  serviceName: "rtc"
+  replicas: 3 
+  template:
+    metadata:
+      labels:
+        app: rtc 
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: rtc
+        image: hub.pri.ibanyu.com/service/rtc:20181204-111249-test 
+        args:
+          - -serv
+          - api/rtc
+          - --skey
+          - 
+        

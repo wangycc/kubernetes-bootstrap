@@ -1,0 +1,116 @@
+---
+## AWS VPC config
+k8s_cluster: kubernetes-test
+env: Kubernete Pro
+region: cn-north-1
+nat_security_group: "{{ k8s_cluster }}_nat_sg"
+master_security_group: "{{ k8s_cluster }}_master_sg"
+node_security_group: "{{ k8s_cluster }}_node_sg"
+AWS_ACCESS_KEY: xxxxxxx 
+AWS_SECRET_ACCESS_KEY: xxxxxxxxxx 
+
+master_image: ami-8b1bc6e6 
+node_image: ami-8b1bc6e6
+master_instance_type: c4.xlarge
+node_instance_type: c4.xlarge 
+
+key_pair: devops
+nat_image: "ami-0f944362"
+nat_instance_type: t2.micro
+
+
+CLUSTER_DNS_DOMAIN: "cluster.local."
+kubeconf_dir: "{{ playbook_dir|dirname }}/kubeconfig"
+
+## common config
+# common,aws
+provider: common
+systemd_user: serv
+
+## flanneld config
+flannel_etcd_prefix: /kube-centos/network
+flannel_version: v0.10.0
+flannel_log_dir: /data/logs/flannel
+flannel_conf_dir: /data/apps/flannel/conf
+flannel_bin_dir: /data/apps/flannel/bin
+flannel_network: "{{ cluster_cidr }}"
+flannel_subnet_len: 24
+flannel_backend_type: vxlan 
+flannel_key: /kube-centos/network/config
+
+## node config
+
+# 如果通过LB代理kubernetes apiserver，这里请填写LB的地址和端口: https://LB:port
+kubelet_api_server: "https://{{groups['masters'][0]}}:{{apiserver_https_port}}"
+nginx_conf_dir: /data/apps/nginx
+
+kubelet_pod_infra_container: registry.cn-hangzhou.aliyuncs.com/google_containers/pause-amd64:3.1 
+cluster_dns: 10.254.0.2
+cluster_kubernetes_svc_ip: 10.254.0.1
+cluster_domain: cluster.local.
+cluster_cidr: 172.30.0.0/16
+service_cluster_ip_range: 10.254.0.0/16
+system_reserved_memory: 1Gi
+# 反向代理apiserver端口
+nginx_proxy_tcp_port: 9443
+
+## master config
+apiserver_https_port: 6443
+master_conf_dir: /data/apps/kubernetes/conf
+master_bin_dir: /data/apps/kubernetes/bin
+master_log_dir: /data/logs/kubernetes 
+BOOTSTRAP_TOKEN: b1eaeb543fbfcacc7e598ced4086d02e
+#生成 EncryptionConfig 所需的加密 key $(head -c 32 /dev/urandom | base64)
+ENCRYPTION_KEY: 1HzzI8uw99aN2Kzn6enadfgDuW611jBl9VrIOkMMOQ4=
+
+#node config
+kubernetes_conf_dir: /data/apps/kubernetes/conf
+kubernetes_bin_dir: /data/apps/kubernetes/bin
+kubernetes_log_dir: /data/logs/kubernetes
+
+kubernetes_version: v1.12.3
+docker_version: 17.03.2.ce-1 
+
+cert_dir_tmp: "{{playbook_dir | dirname}}/.ssl" 
+cert_dir: /data/apps/kubernetes/ssl
+etcd_cert_dir: /data/apps/etcd/ssl
+
+## etcd config
+etcd_peer_url_scheme: https
+etcd_data_dir: /data/apps/etcd/data
+etcd_conf_dir: /data/apps/etcd/etc
+etcd_bin_dir: /data/apps/etcd/bin
+etcd_version: v3.2.18
+etcd_peer_group: etcd
+etcd_interface: eth0
+etcd_peer_port: 2380
+etcd_client_port: 2379
+etcd_peer_ca_file: "{{ etcd_cert_dir }}/ca.pem"
+etcd_peer_cert_file: "{{ etcd_cert_dir}}/etcd.pem"
+etcd_peer_key_file: "{{ etcd_cert_dir}}/etcd-key.pem"
+
+# downloads
+downloads_dir: "{{ playbook_dir|dirname }}/downloads"
+resources_dir: "{{ playbook_dir|dirname }}/resources"
+kubernetes_packages:
+  - name: kubernetes
+    version: "{{ kubernetes_version }}"
+    #url: "https://s3.cn-north-1.amazonaws.com.cn/thirds-soft/kubernetes/{{ kubernetes_version }}/kubernetes-server-linux-amd64.tar.gz"
+    url: "http://10.111.209.188:8000/kubernetes/{{ kubernetes_version }}/kubernetes-server-linux-amd64.tar.gz"
+
+etcd_packages:
+  - name: etcd
+    version: "{{ etcd_version }}"
+    url: "http://10.111.209.188:8000/etcd-{{ etcd_version }}-linux-amd64.tar.gz"
+
+flannel_packages:
+  - name: flannel
+    version: "{{ flannel_version }}"
+    url: "https://s3.cn-north-1.amazonaws.com.cn/thirds-soft/flannel/flannel-{{ flannel_version }}-linux-amd64.tar.gz"
+
+docker_packages:
+  # 需要有依赖关系
+  - name: docker-selinux
+    url: "https://s3.cn-north-1.amazonaws.com.cn/thirds-soft/docker/docker-ce-selinux-{{ docker_version }}.el7.centos.noarch.rpm"
+  - name: docker
+    url: "https://s3.cn-north-1.amazonaws.com.cn/thirds-soft/docker/docker-ce-{{ docker_version }}.el7.centos.x86_64.rpm"

@@ -1,0 +1,31 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: external-gitlab
+  namespace: devops
+spec:
+  type: ExternalName
+  externalName: 10.111.209.188 
+  ports:
+    - port: 8880
+      name: http
+    - port: 4443
+      name: https
+    - port: 2222
+      name: ssh
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: external-gitlab
+  namespace: devops
+spec:
+  rules:
+    - host: git.k8s.ibanyu.com 
+      http:
+        paths:
+          - backend:
+              serviceName: external-gitlab 
+              servicePort: 8880

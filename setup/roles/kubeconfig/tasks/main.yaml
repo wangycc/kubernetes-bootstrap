@@ -1,0 +1,78 @@
+---
+# export KUBE_APISERVER="https://172.20.0.113:6443"
+
+- name: Create kubeconf dir
+  local_action:
+    module: file
+    path: "{{ kubeconf_dir}}"
+    state: directory
+
+- name: "Create a kubeconf file for kubectl"
+  shell: |
+    # 设置集群参数
+    "{{ resources_dir }}"/bin/kubectl config set-cluster kubernetes \
+      --certificate-authority="{{ cert_dir_tmp }}"/ca.pem \
+      --embed-certs=true \
+      --server="{{ kubelet_api_server  }}" \
+      --kubeconfig=kubectl.kubeconfig
+
+    # 设置客户端认证参数
+    {{ resources_dir }}/bin/kubectl config set-credentials admin \
+      --client-certificate={{ cert_dir_tmp}}/admin.pem \
+      --client-key=admin-key.pem \
+      --embed-certs=true \
+      --kubeconfig=kubectl.kubeconfig
+
+    # 设置上下文参数
+    {{ resources_dir }}/bin/kubectl config set-context kubernetes \
+      --cluster=kubernetes \
+      --user=admin \
+      --kubeconfig=kubectl.kubeconfig
+
+    # 设置默认上下文
+    {{ resources_dir }}/bin/kubectl config use-context kubernetes --kubeconfig=kubectl.kubeconfig
+  args:
+    chdir: "{{ kubeconf_dir }}"
+
+- name: "Create a kubeconf file for kube-controller-manager"
+  shell: |
+    {{ resources_dir }}/bin/kubectl config set-cluster kubernetes \
+          --certificate-authority={{ cert_dir_tmp }}/ca.pem \
+          --embed-certs=true \
+          --server={{ ansible_default_ipv4.address  }}:{{ apiserver_https_port }} \
+          --kubeconfig=kube-controller-manager.kubeconfig
+    {{ resources_dir }}/bin/kubectl config set-credentials system:kube-controller-manager \
+          --client-certificate={{ cert_dir_tmp }}/kube-controller-manager.pem \
+          --client-key=kube-controller-manager-key.pem \
+          --embed-certs=true \
+          --kubeconfig=kube-controller-manager.kubeconfig
+    {{ resources_dir }}/bin/kubectl config set-context system:kube-controller-manager \
+          --cluster=kubernetes \
+          --user=system:kube-controller-manager \
+          --kubeconfig=kube-controller-manager.kubeconfig
+    {{ resources_dir }}/bin/kubectl config use-context system:kube-controller-manager --kubeconfig=kube-controller-manager.kubeconfig
+  args:
+    chdir: "{{ kubeconf_dir }}"
+
+- name: "Create a kubeconf file for kube-scheduler"
+  shell: | 
+    "{{ resources_dir }}/bin/kubectl config set-cluster kubernetes \
+          --certificate-authority={{ cert_dir_tmp }}/ca.pem \
+          --embed-certs=true \
+          --server={{ ansible_default_ipv4.address  }}:{{ apiserver_https_port }} \
+          --kubeconfig=kube-scheduler.kubeconfig"
+
+    "{{ resources_dir }}"/bin/kubectl config set-credentials system:kube-scheduler \
+          --client-certificate={{ cert_dir_tmp }}/kube-scheduler.pem \
+          --client-key={{ cert_dir_tmp }}/kube-scheduler-key.pem \
+          --embed-certs=true \
+          --kubeconfig=kube-scheduler.kubeconfig
+
+    "{{ resources_dir }}"/bin/kubectl config set-context system:kube-scheduler \
+          --cluster=kubernetes \
+          --user=system:kube-scheduler \
+          --kubeconfig=kube-scheduler.kubeconfig
+
+    "{{ resources_dir }}/bin/kubectl config use-context system:kube-scheduler --kubeconfig=kube-scheduler.kubeconfig"
+  args:
+    chdir: "{{ kubeconf_dir }}"

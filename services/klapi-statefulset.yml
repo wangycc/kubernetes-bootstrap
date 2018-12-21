@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name:  klapi
+spec:
+  selector:
+    matchLabels:
+      app: klapi 
+  serviceName: "klapi"
+  podManagementPolicy: "Parallel"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: klapi
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: klapi
+        image: hub.pri.ibanyu.com/service/klapi:latest
+	#imagePullPolicy: Always
+        args:
+          - -serv
+          - api/klapi
+          - --skey
+          - "$(MY_POD_NAME)"
+        env:
+          - name: MY_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name

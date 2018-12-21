@@ -1,0 +1,31 @@
+---
+
+- name: download minio server
+  get_url:
+    url: "{{ minio_server_download_url }}"
+    dest: "{{ minio_server_bin }}"
+    owner: "{{ minio_user }}"
+    group: "{{ minio_group }}"
+    mode: 0755
+
+- name: generate the minio server env
+  template:
+    src: minio.conf.j2
+    dest: "{{ minio_conf_dir }}/config.json"
+    owner: "{{ minio_user }}"
+    group: "{{ minio_group }}"
+  notify: restart minio
+
+
+- name: create the minio supervisord config
+  template:
+    src: supervisor.minio.conf.j2
+    dest: "{{ supervisor_conf_dir }}/supervisor.minio.conf"
+    owner: "{{ minio_user }}"
+    group: "{{ minio_group }}"
+  notify: restart minio
+
+- name: "start minio"
+  supervisorctl:
+    name: minio
+    state: restarted

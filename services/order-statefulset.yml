@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name:  order
+spec:
+  selector:
+    matchLabels:
+      app: order 
+  serviceName: "order"
+  podManagementPolicy: "Parallel"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: order
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: order
+        image: hub.pri.ibanyu.com/service/order:20181206-111919-test
+        args:
+          - -serv
+          - busi/order
+          - --skey
+          - "$(MY_POD_NAME)"
+        env:
+          - name: MY_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name

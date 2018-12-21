@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name:  curriculum
+spec:
+  selector:
+    matchLabels:
+      app: curriculum 
+  serviceName: "curriculum"
+  podManagementPolicy: "Parallel"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: curriculum
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: curriculum
+        image: hub.pri.ibanyu.com/service/curriculum:20181206-153607-test
+        args:
+          - -serv
+          - ugc/curriculum
+          - --skey
+          - "$(MY_POD_NAME)"
+        env:
+          - name: MY_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
